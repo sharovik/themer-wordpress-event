@@ -6,6 +6,11 @@ This event is a part of the [devbot project](https://github.com/sharovik/devbot)
 
 ## Installation guide
 
+### Clone into devbot project
+```
+git clone git@github.com:sharovik/themer-wordpress-event.git events/themerwordpress
+```
+
 ### Install it into your devbot project
 1. clone this repository into `events/` folder of your devbot project
 2. add this event into `defined-events.go` file to the defined events map object
@@ -17,6 +22,21 @@ DefinedEvents.Events[themerwordpress.EventName] = themerwordpress.Event
 To install it please run 
 ``` 
 make build-installation-script && scripts/install/run --event_alias=themer_wordpress_event
+```
+
+### PHP installation
+You server requires php version of 7.1+ with php-dom module. `It is only required if you will use the wordpress template generation event.`
+For ubuntu
+```
+sudo apt install php php-dom
+```
+Or for brew
+```
+brew install php
+```
+Or for centos
+```
+yum install php php-xml
 ```
 
 ## How to use
