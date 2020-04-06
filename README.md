@@ -5,6 +5,15 @@ This event is a part of the [devbot project](https://github.com/sharovik/devbot)
 ![Demo file processing](documentation/images/demo-file-processing.gif)
 
 ## Installation guide
+
+### Install it into your devbot project
+1. clone this repository into `events/` folder of your devbot project
+2. add this event into `defined-events.go` file to the defined events map object
+``` 
+DefinedEvents.Events[themerwordpress.EventName] = themerwordpress.Event
+```
+
+### Database installation
 To install it please run 
 ``` 
 make build-installation-script && scripts/install/run --event_alias=themer_wordpress_event
