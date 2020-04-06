@@ -98,7 +98,7 @@ func (e ThemerEvent) Install() error {
 			Int64("scenario_id", scenarioID).
 			Msg("Scenario installed")
 
-		questionID, err :=container.C.Dictionary.InsertQuestion("generate wordpress template", "Ok, let me check this archive", scenarioID, "(?i)process", "")
+		questionID, err := container.C.Dictionary.InsertQuestion("generate wordpress template", "Ok, let me check this archive", scenarioID, "(?i)process", "")
 		if err != nil {
 			return err
 		}
