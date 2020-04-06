@@ -12,7 +12,11 @@ git clone git@github.com:sharovik/themer-wordpress-event.git events/themerwordpr
 ```
 
 ### Install it into your devbot project
-1. clone this repository into `events/` folder of your devbot project
+1. clone this repository into `events/` folder of your devbot project. Please make sure to use `themerwordpress` folder name for this event 
+2. add into imports path to this event in `defined-events.go` file
+``` 
+import "github.com/sharovik/devbot/events/themerwordpress"
+```
 2. add this event into `defined-events.go` file to the defined events map object
 ``` 
 DefinedEvents.Events[themerwordpress.EventName] = themerwordpress.Event
