@@ -39,14 +39,14 @@ var Event = ThemerEvent{
 }
 
 //Execute method which is called by message processor
-func (e ThemerEvent) Execute(message dto.SlackRequestChatPostMessage) (dto.SlackRequestChatPostMessage, error) {
+func (e ThemerEvent) Execute(message dto.BaseChatMessage) (dto.BaseChatMessage, error) {
 	var answer = message
 	if message.OriginalMessage.Files != nil {
-		file, err := processFiles(message.OriginalMessage)
+		file, err := processFiles(message)
 		if err != nil {
 			log.Logger().AddError(err).Msg("Failed to process file")
 
-			answer = fileErrorMessage(message.Channel, file, err)
+			answer.Text = fileErrorMessage(file, err)
 			return answer, nil
 		}
 
@@ -239,17 +239,17 @@ func deleteSrc(src string) error {
 }
 
 //processFiles method which processes the received files
-func processFiles(message dto.SlackResponseEventMessage) (dto.File, error) {
+func processFiles(message dto.BaseChatMessage) (dto.File, error) {
 	log.Logger().Debug().
-		Interface("files", message.Files).
+		Interface("files", message.OriginalMessage.Files).
 		Msg("Files received")
 
-	file, err := validateFiles(message.Files)
+	file, err := validateFiles(message.OriginalMessage.Files)
 	if err != nil {
 		return file, err
 	}
 
-	for _, fileReceived := range message.Files {
+	for _, fileReceived := range message.OriginalMessage.Files {
 		file, err := processFile(message.Channel, fileReceived)
 		if err != nil {
 			return file, err
@@ -263,10 +263,6 @@ func prepareThemeInstructions() string {
 	return "In that archive you can find 2 directories - preview(which contains the html preview of your design) and wordpress(directory contains the wordpress template)\n\n Installation guide:\n - copy wordpress directory into wp-content/themes directory\n - go to admin dashboard of your wordpress site and install your theme"
 }
 
-func fileErrorMessage(channelID string, file dto.File, err error) dto.SlackRequestChatPostMessage {
-	return dto.SlackRequestChatPostMessage{
-		Text:    fmt.Sprintf("Can't process the file. \nReason: %s\nFile name: %s\nFile type: %s", err.Error(), file.Name, file.Filetype),
-		Channel: channelID,
-		AsUser:  true,
-	}
+func fileErrorMessage(file dto.File, err error) string {
+	return fmt.Sprintf("Can't process the file. \nReason: %s\nFile name: %s\nFile type: %s", err.Error(), file.Name, file.Filetype)
 }
