@@ -196,7 +196,7 @@ func processFile(channel string, file dto.File) (dto.File, error) {
 
 	log.Logger().Debug().Str("result_zip_path", src+"/result.zip").Msg("Zip file created")
 
-	if _, _, err := container.C.SlackClient.AttachFileTo(channel, resultFilePath, defaultResultFilename); err != nil {
+	if _, _, err := container.C.MessageClient.AttachFileTo(channel, resultFilePath, defaultResultFilename); err != nil {
 		return file, err
 	}
 
@@ -210,7 +210,7 @@ func processFile(channel string, file dto.File) (dto.File, error) {
 func downloadFile(url string) (*os.File, error) {
 	log.Logger().StartMessage("Download file")
 	// Get the data
-	resp, _, err := container.C.SlackClient.Request(http.MethodGet, url, []byte(``))
+	resp, _, err := container.C.MessageClient.Request(http.MethodGet, url, []byte(``))
 	if err != nil {
 		return nil, err
 	}
