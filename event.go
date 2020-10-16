@@ -2,6 +2,7 @@ package themerwordpress
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -22,6 +23,8 @@ const (
 
 	zipFileType           = "zip"
 	defaultResultFilename = "result.zip"
+	pathToThemerScript = "./events/themerwordpress/themer.phar"
+	latestThemerScriptURL = "https://github.com/sharovik/themer/releases/download/v1.0.0/themer.phar"
 )
 
 var supportedFileTypes = map[string]string{
@@ -51,9 +54,11 @@ func (e ThemerEvent) Execute(message dto.BaseChatMessage) (dto.BaseChatMessage, 
 		}
 
 		message.OriginalMessage.Files = nil
+		answer.Text = prepareThemeInstructions()
+	} else {
+		answer.Text = "There is nothing to process. Please send the file."
 	}
 
-	answer.Text = prepareThemeInstructions()
 	return answer, nil
 }
 
@@ -110,6 +115,16 @@ func (e ThemerEvent) Install() error {
 			Msg("Question installed")
 	}
 
+	_, err = os.Stat(pathToThemerScript)
+	if os.IsNotExist(err) {
+		_, err := DownloadFile(pathToThemerScript, latestThemerScriptURL)
+		if err != nil {
+			return err
+		}
+
+		err = os.Chmod(pathToThemerScript, 0700)
+	}
+
 	return nil
 }
 
@@ -140,7 +155,7 @@ func processFile(channel string, file dto.File) (dto.File, error) {
 		Msg("Start processing file")
 
 	//First we need to download the file
-	tmpFile, err := downloadFile(file.URLPrivate)
+	tmpFile, err := downloadZipFile(file.URLPrivate)
 	if err != nil {
 		return file, err
 	}
@@ -174,7 +189,7 @@ func processFile(channel string, file dto.File) (dto.File, error) {
 	//We run the command which compiles the template.
 	//This will create in src 2 directories: one is for template html preview and second one for template
 
-	cmd := exec.Command(filepath.Join(currentDir, "./scripts/themer/themer.phar"), fmt.Sprintf("--path=%s", pathToFiles))
+	cmd := exec.Command(filepath.Join(currentDir, pathToThemerScript), fmt.Sprintf("--path=%s", pathToFiles))
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
@@ -207,7 +222,7 @@ func processFile(channel string, file dto.File) (dto.File, error) {
 	return file, nil
 }
 
-func downloadFile(url string) (*os.File, error) {
+func downloadZipFile(url string) (*os.File, error) {
 	log.Logger().StartMessage("Download file")
 	// Get the data
 	resp, _, err := container.C.MessageClient.Request(http.MethodGet, url, []byte(``))
@@ -232,6 +247,27 @@ func downloadFile(url string) (*os.File, error) {
 
 	log.Logger().FinishMessage("Download file")
 	return tmpFile, nil
+}
+
+func DownloadFile(filepath string, url string) (*os.File, error) {
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Create the file
+	out, err := os.Create(filepath)
+	if err != nil {
+		return nil, err
+	}
+	defer out.Close()
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	return out, err
 }
 
 func deleteSrc(src string) error {
